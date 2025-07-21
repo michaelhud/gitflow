@@ -1,0 +1,34 @@
+# .github/workflows/rebase-dev-onto-main.yml
+name: Rebase dev onto main
+
+on:
+  push:
+    branches:
+      - main  # Trigger on updates to main
+
+jobs:
+  rebase-dev:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch and Rebase dev onto main
+        run: |
+          git fetch origin main
+          git rebase origin/main
+
+      - name: Push rebased dev
+        run: |
+          git push origin dev --force-with-lease
