@@ -3,11 +3,14 @@ name: Rebase dev onto main
 
 on:
   push:
-    branches:
-      - main  # Trigger on updates to main
+    branches: [main]
+
+concurrency:
+  group: rebase-dev-onto-main
+  cancel-in-progress: true
 
 jobs:
-  rebase-dev:
+  rebase:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -19,16 +22,21 @@ jobs:
           ref: dev
           fetch-depth: 0
 
-      - name: Configure Git
+      - name: Reset to remote dev
+        run: |
+          git fetch origin
+          git reset --hard origin/dev
+
+      - name: Set git identity
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Fetch and Rebase dev onto main
+      - name: Rebase onto main
         run: |
           git fetch origin main
           git rebase origin/main
 
-      - name: Push rebased dev
+      - name: Force push dev
         run: |
           git push origin dev --force-with-lease
